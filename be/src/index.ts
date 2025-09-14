@@ -1,37 +1,67 @@
-import {WebSocketServer,WebSocket} from "ws"
-interface User {
-socket:WebSocket,
-room:number
-}
-const ws = new WebSocketServer({port:4000})
-const arr:User[]= [];
-ws.on("connection",function(socket){
-console.log("connected")
-    socket.on("message",function(msg){
-    // console.log(msg.toString())
-     const data = JSON.parse(msg.toString());
+import { WebSocketServer, WebSocket } from "ws"
+import { v4 as uuidv4 } from "uuid";
+const ws = new WebSocketServer({ port: 4000 })
 
-     if(data.type === 'join'){
-        //make him join the room
-        arr.push({socket:socket,room:data.room})
-        console.log(`You joined room ${data.room} `)
-     }
-     else if(data.type === 'chat'){
-        //now send a message
-        const message = data.payload.message;
-        const room = data.room
-        arr.forEach(function(e){
-             if(e.room === room){
-                e.socket.send(message);
-             }
-        })
-     }
-    })
-    
-    socket.on("close",()=>{
-        console.log("1 user disconnected")
-    })
+//create a map where room : their members
+const rooms: Map<any, Set<WebSocket>> = new Map();
+let room: any;
+const users = new Map<WebSocket, string | number>();
+ws.on("connection", function (socket: WebSocket) {
+   const userId = uuidv4();
+   console.log("Connected")
+   socket.send(JSON.stringify({
+      type: "welcome",
+      id: userId
+   }))
+   socket.on("message", function (msg) {
+      // console.log(msg.toString())
+      console.log("mesage recieved")
+      const data = JSON.parse(msg.toString());
+      room = data.room;
+
+      if (data.type === 'join') {
+         if (!rooms.has(room)) {
+            rooms.set(room, new Set());
+         }
+         if (users.get(socket)) {
+
+            return;
+         }
+         //add the person in the room 
+         rooms.get(room)?.add(socket)
+         users.set(socket, room)
+         console.log(`A user has joined room ${room}`)
+
+      }
+      else {
+
+         const message = data.message;
+         const userRoom = users.get(socket)
+
+         rooms.get(userRoom)?.forEach((r) => {
+            r.send(JSON.stringify({
+               id: userId,
+               message: message
+            }))
+         })
+      }
+   })
+
+   socket.on("close", () => {
+      //remove user from the room
+      const r = users.get(socket);
+      //now remove the socket from the room also 
+      rooms.get(r)?.delete(socket)
+      if (rooms.get(r)?.size === 0) {
+         rooms.delete(r);
+      }
+      users.delete(socket)
+      console.log(`A User disconnected/left room ${room}`)
+
+   })
 })
+
+//below is v.basic chat backend
 
 // import {WebSocketServer,WebSocket} from "ws"
 // let user=0
