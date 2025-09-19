@@ -52,20 +52,20 @@ function App() {
   }, [])
   return (
     <div
-      className="flex flex-col min-h-screen bg-black text-white"
+      className="flex flex-col min-h-screen bg-black text-white w-full"
       style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23444'/%3E%3C/svg%3E")`,
         backgroundSize: "20px 20px",
       }}
     >
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2 sm:space-y-3 text-[15px] sm:text-sm">
         {messages.map((m, i) => {
           if (m.type === "join") {
             return (
               <div key={i} className="flex justify-center">
                 <div className="text-xs text-zinc-400 italic">
-                  User: {m.id} joined the chat
+                  User {m.id} joined the chat
                 </div>
               </div>
             );
@@ -79,13 +79,15 @@ function App() {
               className={`flex items-end gap-2 ${isMe ? "justify-end" : "justify-start"
                 }`}
             >
+              {/* Avatar (other user only) */}
               {!isMe && (
-                <div className="w-8 h-8 rounded-full bg-red-700 flex-shrink-0"></div>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-red-700 flex-shrink-0" />
               )}
 
+              {/* Message bubble */}
               <div
-                className={`max-w-[75%] px-4 py-2 rounded-2xl shadow-md border text-sm
-              ${isMe
+                className={`max-w-[85%] sm:max-w-[75%] px-3 py-2 sm:px-4 sm:py-2 rounded-2xl shadow-md border break-words
+                ${isMe
                     ? "bg-blue-700 text-white border-blue-800"
                     : "bg-neutral-800 text-zinc-200 border-zinc-800"
                   }`}
@@ -93,34 +95,35 @@ function App() {
                 {m.message}
               </div>
 
+              {/* Avatar (me only) */}
               {isMe && (
-                <div className="w-8 h-8 rounded-full bg-blue-400 flex-shrink-0"></div>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-400 flex-shrink-0" />
               )}
             </div>
           );
         })}
+        <div ref={endMessageRef} />
       </div>
-      <div ref={endMessageRef} />
 
-
-      <div className="sticky bottom-0 bg-black/90 border-t border-zinc-700 p-3">
+      {/* Input */}
+      <div className="sticky bottom-0 bg-black/95 border-t border-zinc-700 p-2 sm:p-3 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
         <form
           onSubmit={sendMessage}
-          className="flex items-center gap-2 max-w-4xl mx-auto"
+          className="flex items-center gap-2 max-w-2xl mx-auto w-full"
         >
           <input
             ref={msg}
             type="text"
             placeholder="Type a message..."
-            className="flex-1 px-4 py-3 rounded-xl bg-neutral-900/80 border border-zinc-700 
-                     focus:outline-none focus:ring-2 focus:ring-blue-900 text-white placeholder-zinc-400"
+            className="flex-1 px-3 py-3 rounded-xl bg-neutral-900/80 border border-zinc-700 
+                     focus:outline-none focus:ring-2 focus:ring-blue-900 text-white placeholder-zinc-400
+                     text-base sm:text-sm"
           />
           <button
             type="submit"
-            className=" 
-                     transition font-semibold flex items-center justify-center"
+            className="p-3 sm:p-2 rounded-xl hover:bg-zinc-800 transition flex items-center justify-center"
           >
-            <Send className="w-8 h-5" />
+            <Send className="w-6 h-6 sm:w-5 sm:h-5" />
           </button>
         </form>
       </div>
