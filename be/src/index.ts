@@ -1,7 +1,8 @@
 import { WebSocketServer, WebSocket } from "ws"
 import { v4 as uuidv4 } from "uuid";
+const express from "express"
 const ws = new WebSocketServer({ port: 4000 })
-
+const app = express()
 //create a map where room : their members
 const rooms: Map<any, Set<WebSocket>> = new Map();
 let room: any;
@@ -23,15 +24,17 @@ ws.on("connection", function (socket: WebSocket) {
          if (!rooms.has(room)) {
             rooms.set(room, new Set());
          }
-         if (users.get(socket)) {
-
-            return;
-         }
          //add the person in the room 
-         rooms.get(room)?.add(socket)
          users.set(socket, room)
-         console.log(`A user has joined room ${room}`)
+         rooms.get(room)?.add(socket)
+         //send joining message to every1
+         rooms.get(room).forEach((s) => {
+            s.send(JSON.stringify({
+               type: "join",
+               id: userId
+            }))
 
+         })
       }
       else {
 
@@ -59,6 +62,9 @@ ws.on("connection", function (socket: WebSocket) {
       console.log(`A User disconnected/left room ${room}`)
 
    })
+})
+app.listen(4000, () => {
+   console.log("Server is running on port 4000")
 })
 
 //below is v.basic chat backend
