@@ -1,9 +1,15 @@
 import { WebSocketServer, WebSocket } from "ws"
-import { v4 as uuidv4 } from "uuid";
-const express from "express"
+import { v4 as uuidv4 } from "uuid"
+import express from "express"
+import cors from "cors"
+import dotenv from "dotenv"
+dotenv.config()
 const ws = new WebSocketServer({ port: 4000 })
 const app = express()
-//create a map where room : their members
+app.use(cors({ origin: "*" }))
+app.use(express.json())
+
+
 const rooms: Map<any, Set<WebSocket>> = new Map();
 let room: any;
 const users = new Map<WebSocket, string | number>();
@@ -24,7 +30,7 @@ ws.on("connection", function (socket: WebSocket) {
          if (!rooms.has(room)) {
             rooms.set(room, new Set());
          }
-         //add the person in the room 
+         //add the person in the room
          users.set(socket, room)
          rooms.get(room)?.add(socket)
          //send joining message to every1
@@ -33,7 +39,6 @@ ws.on("connection", function (socket: WebSocket) {
                type: "join",
                id: userId
             }))
-
          })
       }
       else {
@@ -53,7 +58,7 @@ ws.on("connection", function (socket: WebSocket) {
    socket.on("close", () => {
       //remove user from the room
       const r = users.get(socket);
-      //now remove the socket from the room also 
+      //now remove the socket from the room also
       rooms.get(r)?.delete(socket)
       if (rooms.get(r)?.size === 0) {
          rooms.delete(r);
@@ -63,29 +68,10 @@ ws.on("connection", function (socket: WebSocket) {
 
    })
 })
-app.listen(4000, () => {
-   console.log("Server is running on port 4000")
+import userRouter from "./routes/user.route.js"
+app.use("/api", userRouter)
+app.listen(5000, () => {
+   console.log("Server is running on port 5k")
+   console.log(process.env.DATABASE_URL)
 })
-
-//below is v.basic chat backend
-
-// import {WebSocketServer,WebSocket} from "ws"
-// let user=0
-// const ws = new WebSocketServer({port:4000})
-// let arr:WebSocket[]= [];
-// ws.on("connection",function(socket){
-//     arr.push(socket)
-//     user++;
-//     console.log("connected Users #",user)
-//     socket.on("message",function(msg){
-//         //send this to everyone except the sender
-//       arr.forEach((s)=> s!==socket?s.send(msg.toString()):null)
-//     })
-//     socket.on("close",function(){
-//         user--;
-//        arr= arr.filter((e)=>e!=socket)
-//         console.log(`User left #${user} | sending to ${arr.length-1} people`)
-
-//     })
-// })
 
